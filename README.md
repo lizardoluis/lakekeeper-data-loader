@@ -1,4 +1,4 @@
-# Lakekeeper Data Loader
+# PGAA Lakekeeper Data Loader
 
 The **Lakekeeper Data Loader** is a Python-based tool designed to load Parquet files into an Iceberg catalog. It supports both local Parquet files and files stored in an S3 bucket.
 
