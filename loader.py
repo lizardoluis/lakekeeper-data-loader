@@ -174,6 +174,10 @@ def download_from_s3(source_bucket, prefix, download_dir):
 
 
 def add_parquets_to_catalog(catalog, parquet_files, namespace, table_name):
+    if not parquet_files:
+        print(f"[ERROR] No Parquet files found on storage/directory.")
+        exit(1)
+
     catalog.create_namespace_if_not_exists((namespace,))
     print(f"[CREATE NAMESPACE] Namespace '{namespace}' created.")
 
@@ -217,23 +221,6 @@ if __name__ == "__main__":
         print(f"[ERROR] Both --namespace and --table-name must be specified to create the catalog table.")
         exit(1)
 
-    if args.local_path:
-        parquet_files = get_parquet_files_from_local(args.local_path)
-    elif args.bucket and args.prefix:
-        if args.directory:
-            os.makedirs(args.directory, exist_ok=True)
-            parquet_files = download_from_s3(args.bucket, args.prefix, args.directory)
-        else:
-            with tempfile.TemporaryDirectory() as temp_dir:
-                parquet_files = download_from_s3(args.bucket, args.prefix, temp_dir)
-    else:
-        print(f"[ERROR] Either --local-path or both --bucket and --prefix must be specified.")
-        exit(1)
-
-    if not parquet_files:
-        print(f"[ERROR] No Parquet files found on storage/directory.")
-        exit(1)
-
     catalog = RestCatalog(
         name="iceberg",
         warehouse=args.warehouse,
@@ -241,4 +228,17 @@ if __name__ == "__main__":
         token=args.token,
     )
 
-    add_parquets_to_catalog(catalog, parquet_files, args.namespace, args.table_name)
+    if args.local_path:
+        parquet_files = get_parquet_files_from_local(args.local_path)
+    elif args.bucket and args.prefix:
+        if args.directory:
+            os.makedirs(args.directory, exist_ok=True)
+            parquet_files = download_from_s3(args.bucket, args.prefix, args.directory)
+            add_parquets_to_catalog(catalog, parquet_files, args.namespace, args.table_name)
+        else:
+            with tempfile.TemporaryDirectory() as temp_dir:
+                parquet_files = download_from_s3(args.bucket, args.prefix, temp_dir)
+                add_parquets_to_catalog(catalog, parquet_files, args.namespace, args.table_name)
+    else:
+        print(f"[ERROR] Either --local-path or both --bucket and --prefix must be specified.")
+        exit(1)
