@@ -116,26 +116,6 @@ def parse_arguments():
     return parser.parse_args()
 
 
-def fix_decimal_physical_type(parquet_file):
-    """
-    Reads a Parquet file and rewrites it with the correct physical type for DECIMAL columns.
-    """
-    table = pq.read_table(parquet_file)
-    schema = table.schema
-
-    fixed_columns = []
-    for field in schema:
-        if pa.types.is_decimal(field.type):
-            if field.type.precision <= 18:
-                fixed_columns.append(field.name)
-
-    if fixed_columns:
-        print(
-            f"[FIXING] Rewriting {parquet_file} to fix DECIMAL columns: {fixed_columns}"
-        )
-        pq.write_table(table, parquet_file, use_deprecated_int96_timestamps=True)
-
-
 def list_parquets_in_s3(source_bucket, prefix):
     s3client = boto3.client("s3", config=Config(signature_version=UNSIGNED))
     resp = s3client.list_objects_v2(Bucket=source_bucket, Prefix=prefix)
@@ -198,9 +178,9 @@ def add_parquets_to_catalog(catalog, parquet_files, namespace, table_name):
 
     # Append the rest of the Parquet files to the table
     for file in parquet_files:
-        fix_decimal_physical_type(file)
         print(f"[UPLOAD] Appending {file} to Iceberg table {table_name}")
-        iceberg_table.add_files(file_paths=[file])
+        table = pq.read_table(file)
+        iceberg_table.append(df=table)
 
 
 if __name__ == "__main__":
