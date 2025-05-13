@@ -38,7 +38,7 @@ The **Lakekeeper Data Loader** is a Python-based tool designed to load Parquet f
 | `-p`       | `--prefix`      | Source S3 bucket prefix.                                                   |
 | `-E`       | `--endpoint`    | Lakekeeper endpoint.                                                       |
 | `-T`       | `--token`       | Lakekeeper token.                                                          |
-| `-W`       | `--warehouse`   | Lakekeeper warehouse name.                                                 |
+| `-w`       | `--warehouse`   | Lakekeeper warehouse name.                                                 |
 | `-N`       | `--namespace`   | Target namespace.                                                          |
 | `-t`       | `--table-name`  | Target table name.                                                         |
 | `-D`       | `--directory`   | Directory to store downloaded Parquet files. Uses a temporary directory if not specified. |
